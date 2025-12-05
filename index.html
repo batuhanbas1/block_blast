@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Block Blast Ultimate</title>
+    <title>Block Blast Ultimate - Enhanced</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700;900&display=swap');
 
@@ -18,6 +18,8 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         #game-container {
@@ -25,7 +27,6 @@
             width: 100%;
             height: 100%;
             max-width: 500px;
-            /* Dinamik arka plan JS ile kontrol edilecek */
             background: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
             display: flex;
             flex-direction: column;
@@ -42,7 +43,7 @@
             justify-content: space-between;
             align-items: center;
             padding-top: 40px;
-            padding-bottom: 20px;
+            padding-bottom: 10px;
             z-index: 10;
         }
 
@@ -96,11 +97,39 @@
             touch-action: none;
         }
 
+        /* --- CONTROLS --- */
+        #controls-area {
+            position: absolute;
+            bottom: 30px;
+            right: 20px;
+            z-index: 15;
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn-icon:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.1); }
+        .btn-icon:active { transform: scale(0.95); }
+
         /* --- GAME OVER --- */
         #game-over {
             position: absolute;
             inset: 0;
-            background: rgba(5, 5, 8, 0.92);
+            background: rgba(5, 5, 8, 0.95);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -178,6 +207,14 @@
 
         <canvas id="gameCanvas"></canvas>
 
+        <div id="controls-area">
+            <button class="btn-icon" id="btn-rotate" onclick="rotateDockPieces()" title="Parçaları Döndür">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2.5 2v6h6M21.5 22v-6h-6"/><path d="M22 11.5A10 10 0 0 0 3.2 7.2M2 12.5a10 10 0 0 0 18.8 4.2"/>
+                </svg>
+            </button>
+        </div>
+
         <div id="game-over">
             <div class="go-title">OYUN BİTTİ</div>
             <div class="go-score">SKORUN: <span id="final-score">0</span></div>
@@ -186,6 +223,46 @@
     </div>
 
     <script>
+        // --- SES SİSTEMİ (AudioContext) ---
+        // Harici dosya olmadan saf JS ile ses üretimi
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = new AudioContext();
+        
+        const Sounds = {
+            playTone: (freq, type, duration, vol = 0.1) => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            },
+            
+            pop: () => { // Blok yerleştirme sesi
+                Sounds.playTone(400 + Math.random()*200, 'sine', 0.1, 0.1);
+            },
+            
+            rotate: () => { // Döndürme sesi
+                Sounds.playTone(600, 'triangle', 0.1, 0.05);
+            },
+
+            clear: (combo) => { // Patlama sesi (Kombo arttıkça incelir)
+                const base = 300 + (combo * 100);
+                Sounds.playTone(base, 'sawtooth', 0.15, 0.1); // Ana darbe
+                setTimeout(() => Sounds.playTone(base * 1.5, 'sine', 0.2, 0.1), 50); // Çınlama
+            },
+            
+            gameOver: () => { // Oyun bitiş hüznü
+                Sounds.playTone(150, 'sawtooth', 1.0, 0.2);
+                setTimeout(() => Sounds.playTone(100, 'sawtooth', 1.0, 0.2), 400);
+            }
+        };
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d', { alpha: false });
         const scoreEl = document.getElementById('score');
@@ -200,25 +277,17 @@
         const GAP = 5; 
         const BOARD_OFFSET_Y = 60;
         
-        // Dinamik Renk Paleti (HSL tabanlı olacak)
-        let baseHue = 230; // Başlangıç rengi (Mavi)
+        let baseHue = 230; 
 
         const COLORS = {
             gridEmpty: '#14141e',
             gridBorder: '#1a1c2c',
             blocks: [
-                '#FF3B30', // Kırmızı
-                '#FF9500', // Turuncu
-                '#FFCC00', // Sarı
-                '#4CD964', // Yeşil
-                '#5AC8FA', // Açık Mavi
-                '#007AFF', // Mavi
-                '#5856D6', // Mor
-                '#FF2D55'  // Pembe
+                '#FF3B30', '#FF9500', '#FFCC00', '#4CD964', 
+                '#5AC8FA', '#007AFF', '#5856D6', '#FF2D55'
             ]
         };
 
-        // 15 Farklı Şekil
         const SHAPES = [
             [[1]], [[1, 1]], [[1], [1]], [[1, 1, 1]], [[1], [1], [1]], 
             [[1, 1], [1, 1]], [[1, 1, 1], [0, 1, 0]], [[0, 1, 0], [1, 1, 1]], 
@@ -229,13 +298,7 @@
 
         // --- DURUM YÖNETİMİ ---
         let grid = [];
-        let particles = [];     // Standart efektler
-        let debris = [];        // Fiziksel parçalar (düşüp sekenler)
-        let popups = [];        // Kayan yazılar
-        let shockwaves = [];    // Patlama halkaları
-        let flashes = [];       // Beyaz flaşlar
-        let confettis = [];     // Rekor konfetileri
-        
+        let particles = [], debris = [], popups = [], shockwaves = [], flashes = [], confettis = [];
         let dockPieces = [];
         let draggedPiece = null;
         let score = 0;
@@ -272,6 +335,9 @@
         }
 
         function init() {
+            // Audio context başlatma (kullanıcı etkileşimi gerekebilir)
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+
             grid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(null));
             score = 0;
             isGameOver = false;
@@ -293,7 +359,8 @@
                 const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
                 const color = COLORS.blocks[Math.floor(Math.random() * COLORS.blocks.length)];
                 dockPieces.push({
-                    shape: shape, color: color,
+                    shape: JSON.parse(JSON.stringify(shape)), // Deep copy
+                    color: color,
                     x: 0, y: 0, width: 0, height: 0,
                     scale: 0.6, isDragging: false, targetScale: 0.6,
                     baseX: 0, baseY: 0
@@ -314,32 +381,69 @@
             });
         }
 
-        // --- GÖRSEL FONKSİYONLAR ---
+        // --- YENİ: DÖNDÜRME MANTIĞI ---
+        function rotateMatrix(matrix) {
+            // 90 derece saat yönünde döndür
+            const N = matrix.length;
+            const M = matrix[0].length;
+            let result = Array(M).fill().map(() => Array(N).fill(0));
+            for(let i=0; i<N; i++) {
+                for(let j=0; j<M; j++) {
+                    result[j][N - 1 - i] = matrix[i][j];
+                }
+            }
+            return result;
+        }
 
-        // 3D/Cam Görüntülü Blok
+        function rotateDockPieces() {
+            if(isGameOver) return;
+            
+            let rotatedAny = false;
+            dockPieces.forEach(p => {
+                if(p && !p.isDragging) {
+                    p.shape = rotateMatrix(p.shape);
+                    // Animasyon efekti
+                    p.scale = 0.1; 
+                    p.targetScale = 0.6;
+                    createParticles(p.x, p.y, '#fff', 2, 2);
+                    rotatedAny = true;
+                }
+            });
+
+            if(rotatedAny) {
+                Sounds.rotate();
+                checkGameOver(); // Döndürdükten sonra oyun bitiyor mu kontrol et
+            }
+        }
+
+        // Klavye R tuşu
+        window.addEventListener('keydown', (e) => {
+            if((e.key === 'r' || e.key === 'R') && !isGameOver) {
+                rotateDockPieces();
+            }
+        });
+
+
+        // --- GÖRSEL FONKSİYONLAR ---
         function drawBlock(ctx, x, y, size, color, alpha = 1.0, scale = 1.0) {
             ctx.globalAlpha = alpha;
             const center = size/2;
             const r = 8 * scale;
             
-            // Küçültme/büyütme efekti için transform
             ctx.save();
             ctx.translate(x + center, y + center);
             ctx.scale(scale, scale);
             ctx.translate(-center, -center);
 
-            // Ana renk
             ctx.fillStyle = color;
             drawRoundedRect(ctx, 0, 0, size, size, r);
 
-            // Üst parlama (Highlight)
             const grad = ctx.createLinearGradient(0, 0, 0, size);
             grad.addColorStop(0, "rgba(255,255,255,0.4)");
             grad.addColorStop(0.4, "rgba(255,255,255,0)");
             ctx.fillStyle = grad;
             drawRoundedRect(ctx, 0, 0, size, size, r);
 
-            // Alt gölge (Shadow)
             ctx.fillStyle = "rgba(0,0,0,0.2)";
             ctx.beginPath();
             ctx.moveTo(0, size);
@@ -348,7 +452,6 @@
             ctx.lineTo(0, size - 2);
             ctx.fill();
 
-            // İç çerçeve (Bevel)
             ctx.strokeStyle = "rgba(255,255,255,0.2)";
             ctx.lineWidth = 2;
             ctx.stroke();
@@ -359,9 +462,10 @@
 
         function drawRoundedRect(ctx, x, y, w, h, r) {
             ctx.beginPath();
-            ctx.roundRect(x, y, w, h, r); // Modern tarayıcılar için
+            if(ctx.roundRect) ctx.roundRect(x, y, w, h, r);
+            else ctx.rect(x, y, w, h);
             ctx.fill();
-            ctx.stroke(); // Eğer strokeStyle varsa
+            ctx.stroke();
         }
 
         // --- OYUN MANTIĞI ---
@@ -370,18 +474,20 @@
 
         function handleInputStart(x, y) {
             if (isGameOver) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
             isInputDown = true;
             for (let p of dockPieces) {
                 if (!p) continue;
                 if (Math.abs(x - p.x) < 70 && Math.abs(y - p.y) < 70) {
                     draggedPiece = p;
                     draggedPiece.isDragging = true;
-                    draggedPiece.targetScale = 1.1; // Büyüme efekti
-                    dragOffsetY = -100; // Parmağın üstünde görünsün
+                    draggedPiece.targetScale = 1.1; 
+                    dragOffsetY = -100;
                     draggedPiece.x = x;
                     draggedPiece.y = y + dragOffsetY;
-                    // Titreşim (Haptic)
                     if(navigator.vibrate) navigator.vibrate(10);
+                    Sounds.pop(); // Ses ekle
                     break;
                 }
             }
@@ -398,15 +504,15 @@
                     placePiece(draggedPiece, gp.c, gp.r);
                     const index = dockPieces.indexOf(draggedPiece);
                     dockPieces[index] = null;
-                    if(navigator.vibrate) navigator.vibrate(20); // Yerleştirme hissi
+                    if(navigator.vibrate) navigator.vibrate(20);
                     if (dockPieces.every(p => p === null)) spawnPieces();
                     else checkGameOver();
                 } else {
-                    // Yerine geri dön
                     draggedPiece.isDragging = false;
                     draggedPiece.targetScale = 0.6;
                     draggedPiece.x = draggedPiece.baseX;
                     draggedPiece.y = draggedPiece.baseY;
+                    Sounds.playTone(100, 'sine', 0.1, 0.05); // Başarısız bırakma sesi
                 }
                 draggedPiece = null;
             }
@@ -437,6 +543,7 @@
         function placePiece(piece, c, r) {
             let blocksPlaced = 0;
             screenShake = 4;
+            Sounds.pop(); // Yerleştirme sesi
             
             for (let y = 0; y < piece.shape.length; y++) {
                 for (let x = 0; x < piece.shape[0].length; x++) {
@@ -457,7 +564,6 @@
 
         function checkLines() {
             let linesCleared = [];
-            // Satır ve Sütun kontrolü
             for (let y = 0; y < GRID_SIZE; y++) {
                 if (grid[y].every(cell => cell !== null)) linesCleared.push({type:'row', idx:y});
             }
@@ -473,23 +579,21 @@
                 const now = Date.now();
                 comboCount = (now - lastClearTime < 5000) ? comboCount + 1 : 1;
                 lastClearTime = now;
+                
+                // SES EFEKTİ
+                Sounds.clear(comboCount);
 
-                // Titreşim ve Şok Dalgası
                 screenShake = 10 + (linesCleared.length * 3);
                 shockwaves.push({ x: canvasWidth/2, y: boardY + boardWidth/2, r: 0, alpha: 1, color: '#fff', lw: 15 });
-
-                // Renk değişimi (Atmosfer)
                 targetHue = (targetHue + 40) % 360;
 
                 linesCleared.forEach(line => {
-                    // Flash
                     if(line.type === 'row') {
                         flashes.push({ x: boardX, y: boardY + line.idx * (CELL_SIZE + GAP), w: boardWidth, h: CELL_SIZE, life: 1.0 });
                         for(let x=0; x<GRID_SIZE; x++) {
                             const cx = x * (CELL_SIZE + GAP) + boardX + CELL_SIZE/2;
                             const cy = line.idx * (CELL_SIZE + GAP) + boardY + CELL_SIZE/2;
-                            const color = grid[line.idx][x];
-                            createDebris(cx, cy, color); // FİZİKSEL PARÇALANMA!
+                            createDebris(cx, cy, grid[line.idx][x]);
                             grid[line.idx][x] = null;
                         }
                     } else {
@@ -497,19 +601,17 @@
                         for(let y=0; y<GRID_SIZE; y++) {
                             const cx = line.idx * (CELL_SIZE + GAP) + boardX + CELL_SIZE/2;
                             const cy = y * (CELL_SIZE + GAP) + boardY + CELL_SIZE/2;
-                            const color = grid[y][line.idx];
-                            createDebris(cx, cy, color);
+                            createDebris(cx, cy, grid[y][line.idx]);
                             grid[y][line.idx] = null;
                         }
                     }
                 });
 
-                // Puanlama
                 let points = linesCleared.length * 100;
                 if (linesCleared.length > 1) points *= 1.5;
                 if (comboCount > 1) {
                     points += (comboCount * 50);
-                    createPopup(`COMBO x${comboCount}`, canvasWidth/2, boardY + boardWidth/2, '#ffd700', 1.5);
+                    createPopup(`COMBO x${comboCount}`, canvasWidth/2, boardY + boardWidth/2, '#ffd700', 1.5 + (comboCount*0.1));
                 } else if (linesCleared.length > 1) {
                     createPopup("HARİKA!", canvasWidth/2, boardY + boardWidth/2, '#00e5ff', 1.2);
                 }
@@ -538,6 +640,7 @@
             if (!canMove) {
                 setTimeout(() => {
                     isGameOver = true;
+                    Sounds.gameOver(); // Bitiş sesi
                     gameOverScreen.classList.add('active');
                     finalScoreEl.innerText = score;
                 }, 800);
@@ -548,7 +651,7 @@
             score += amt;
             scoreEl.innerText = score;
             scoreEl.classList.remove('pop');
-            void scoreEl.offsetWidth; // Trigger reflow
+            void scoreEl.offsetWidth; 
             scoreEl.classList.add('pop');
             
             if (score > highScore) {
@@ -565,16 +668,14 @@
         function updateUI() { scoreEl.innerText = score; highScoreEl.innerText = highScore; }
         function restartGame() { init(); }
 
-        // --- PARTİKÜL SİSTEMİ (JUIICYYY) ---
-
-        // Debris: Yerçekimli parçalar
+        // --- PARTİKÜL SİSTEMİ ---
         function createDebris(x, y, color) {
-            for(let i=0; i<4; i++) { // Her blok 4 parçaya bölünür
+            for(let i=0; i<4; i++) {
                 debris.push({
                     x: x + (Math.random()-0.5)*20,
                     y: y + (Math.random()-0.5)*20,
                     vx: (Math.random()-0.5) * 10,
-                    vy: (Math.random() * -10) - 5, // Yukarı fırla
+                    vy: (Math.random() * -10) - 5,
                     size: Math.random() * 8 + 4,
                     color: color,
                     life: 1.0,
@@ -583,7 +684,6 @@
             }
         }
 
-        // Standart patlama tozu
         function createParticles(x, y, color, amount, speedBase) {
             for (let i = 0; i < amount; i++) {
                 particles.push({
@@ -614,9 +714,7 @@
         }
 
         // --- RENDER DÖNGÜSÜ ---
-        
         function gameLoop() {
-            // Dinamik Arkaplan: HSL ile renk geçişi
             baseHue += (targetHue - baseHue) * 0.05;
             const bgGradient = ctx.createRadialGradient(canvasWidth/2, canvasHeight/2, 0, canvasWidth/2, canvasHeight/2, canvasHeight);
             bgGradient.addColorStop(0, `hsla(${baseHue}, 40%, 15%, 1)`);
@@ -624,7 +722,6 @@
             ctx.fillStyle = bgGradient;
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-            // Screen Shake
             let sx = 0, sy = 0;
             if (screenShake > 0) {
                 sx = (Math.random()-0.5)*screenShake;
@@ -635,28 +732,23 @@
             ctx.save();
             ctx.translate(sx, sy);
 
-            // 1. GRID ÇİZİMİ
+            // GRID
             for (let y = 0; y < GRID_SIZE; y++) {
                 for (let x = 0; x < GRID_SIZE; x++) {
                     const posX = boardX + x * (CELL_SIZE + GAP);
                     const posY = boardY + y * (CELL_SIZE + GAP);
-                    
-                    // Boş yuva
                     ctx.fillStyle = COLORS.gridEmpty;
                     drawRoundedRect(ctx, posX, posY, CELL_SIZE, CELL_SIZE, 8);
-                    
-                    // Dolu blok
                     if (grid[y][x]) {
                         drawBlock(ctx, posX, posY, CELL_SIZE, grid[y][x]);
                     }
                 }
             }
 
-            // 2. AKILLI ÖNİZLEME (Smart Highlight)
+            // ÖNİZLEME
             if (draggedPiece) {
                 const gp = getGridPosFromScreen(draggedPiece.x, draggedPiece.y, draggedPiece.shape);
                 if (gp && canPlace(draggedPiece.shape, gp.c, gp.r)) {
-                    // Geçerli yerleştirme noktası parlasın
                     ctx.shadowBlur = 20;
                     ctx.shadowColor = draggedPiece.color;
                     ctx.globalAlpha = 0.4;
@@ -675,72 +767,47 @@
                 }
             }
 
-            // 3. FLASH EFEKTİ
+            // EFEKTLER
             flashes.forEach((f, i) => {
                 ctx.fillStyle = `rgba(255,255,255,${f.life})`;
-                ctx.globalCompositeOperation = 'overlay'; // Renkleri patlatır
+                ctx.globalCompositeOperation = 'overlay';
                 drawRoundedRect(ctx, f.x, f.y, f.w, f.h, 8);
                 ctx.globalCompositeOperation = 'source-over';
                 f.life -= 0.15;
                 if (f.life <= 0) flashes.splice(i, 1);
             });
 
-            // 4. DEBRIS (Fiziksel Parçalar)
             for(let i=debris.length-1; i>=0; i--) {
                 const p = debris[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += p.gravity; // Yerçekimi
-                
-                // Zemin çarpışması (Bounce)
-                if (p.y > canvasHeight - 10) {
-                    p.y = canvasHeight - 10;
-                    p.vy *= -0.6; // Enerji kaybıyla sekme
-                }
-
+                p.x += p.vx; p.y += p.vy; p.vy += p.gravity;
+                if (p.y > canvasHeight - 10) { p.y = canvasHeight - 10; p.vy *= -0.6; }
                 p.life -= 0.015;
                 if(p.life <= 0) { debris.splice(i, 1); continue; }
-
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.rotate(p.life * 5); // Dönme efekti
-                ctx.fillStyle = p.color;
-                ctx.globalAlpha = p.life;
-                ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
-                ctx.restore();
+                ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.life * 5);
+                ctx.fillStyle = p.color; ctx.globalAlpha = p.life;
+                ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size); ctx.restore();
             }
 
-            // 5. ŞOK DALGALARI
             for(let i=shockwaves.length-1; i>=0; i--) {
                 const sw = shockwaves[i];
-                sw.r += 10;
-                sw.alpha -= 0.04;
+                sw.r += 10; sw.alpha -= 0.04;
                 if(sw.alpha <= 0) { shockwaves.splice(i, 1); continue; }
-                ctx.beginPath();
-                ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI*2);
+                ctx.beginPath(); ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI*2);
                 ctx.strokeStyle = `rgba(255,255,255,${sw.alpha})`;
-                ctx.lineWidth = sw.lw * sw.alpha;
-                ctx.stroke();
+                ctx.lineWidth = sw.lw * sw.alpha; ctx.stroke();
             }
 
-            // 6. DOCK PARÇALARI
             dockPieces.forEach(p => {
                 if (!p) return;
                 p.scale += (p.targetScale - p.scale) * 0.2;
-                
                 const blockSize = draggedPiece === p ? CELL_SIZE : 24;
                 const gap = draggedPiece === p ? GAP : 2;
                 const totalW = p.shape[0].length * (blockSize + gap);
                 const totalH = p.shape.length * (blockSize + gap);
-                
                 const startX = p.x - (totalW / 2);
                 const startY = p.y - (totalH / 2);
 
-                // Sürüklenen parça biraz daha saydam ve parlak
-                if (draggedPiece === p) {
-                    ctx.shadowColor = p.color;
-                    ctx.shadowBlur = 30;
-                }
+                if (draggedPiece === p) { ctx.shadowColor = p.color; ctx.shadowBlur = 30; }
 
                 for (let r = 0; r < p.shape.length; r++) {
                     for (let c = 0; c < p.shape[0].length; c++) {
@@ -748,14 +815,10 @@
                             if (draggedPiece === p) {
                                 drawBlock(ctx, startX + c*(blockSize+gap), startY + r*(blockSize+gap), blockSize, p.color, 0.9, 1.0);
                             } else {
-                                // Dock'ta basit çizim
                                 ctx.fillStyle = p.color;
                                 drawRoundedRect(ctx, startX + c*(blockSize+gap), startY + r*(blockSize+gap), blockSize, blockSize, 6);
-                                // İçine biraz parlaklık
                                 ctx.fillStyle = "rgba(255,255,255,0.2)";
-                                ctx.beginPath();
-                                ctx.arc(startX + c*(blockSize+gap)+8, startY + r*(blockSize+gap)+8, 4, 0, Math.PI*2);
-                                ctx.fill();
+                                ctx.beginPath(); ctx.arc(startX + c*(blockSize+gap)+8, startY + r*(blockSize+gap)+8, 4, 0, Math.PI*2); ctx.fill();
                             }
                         }
                     }
@@ -763,58 +826,32 @@
                 ctx.shadowBlur = 0;
             });
 
-            // 7. POPUP YAZILAR
             ctx.textAlign = "center";
             for(let i=popups.length-1; i>=0; i--) {
                 const p = popups[i];
-                p.life -= 0.015;
-                p.y += p.dy;
-                p.scale += 0.01; // Büyüyerek gelir
-                
+                p.life -= 0.015; p.y += p.dy; p.scale += 0.01;
                 if(p.life <= 0) { popups.splice(i, 1); continue; }
-
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.scale(p.scale, p.scale);
-                ctx.fillStyle = p.color;
-                ctx.font = "900 40px 'Fredoka', sans-serif";
-                
-                // Neon Text Effect
-                ctx.shadowColor = p.color;
-                ctx.shadowBlur = 20;
-                ctx.fillText(p.text, 0, 0);
-                
-                ctx.shadowBlur = 0;
-                ctx.strokeStyle = "white";
-                ctx.lineWidth = 2;
-                ctx.strokeText(p.text, 0, 0);
-                
+                ctx.save(); ctx.translate(p.x, p.y); ctx.scale(p.scale, p.scale);
+                ctx.fillStyle = p.color; ctx.font = "900 40px 'Fredoka', sans-serif";
+                ctx.shadowColor = p.color; ctx.shadowBlur = 20; ctx.fillText(p.text, 0, 0);
+                ctx.shadowBlur = 0; ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.strokeText(p.text, 0, 0);
                 ctx.restore();
             }
 
-            // 8. KONFETİ (Rekor)
             for(let i=confettis.length-1; i>=0; i--) {
                 const c = confettis[i];
-                c.x += c.vx;
-                c.y += c.vy;
-                c.vy += 0.5; // Gravity
-                c.vx *= 0.98; // Air resistance
-                c.life -= 0.01;
-                
+                c.x += c.vx; c.y += c.vy; c.vy += 0.5; c.vx *= 0.98; c.life -= 0.01;
                 if(c.life <= 0) { confettis.splice(i, 1); continue; }
-                
-                ctx.fillStyle = c.color;
-                ctx.fillRect(c.x, c.y, c.size, c.size);
+                ctx.fillStyle = c.color; ctx.fillRect(c.x, c.y, c.size, c.size);
             }
 
-            ctx.restore(); // Screen Shake restore
+            ctx.restore();
             requestAnimationFrame(gameLoop);
         }
 
-        // --- OLAY DİNLEYİCİLERİ ---
+        // --- EVENTS ---
         window.addEventListener('resize', resize);
         
-        // Mouse
         canvas.addEventListener('mousedown', e => handleInputStart(e.offsetX, e.offsetY));
         window.addEventListener('mousemove', e => { if(isInputDown) {
             const r = canvas.getBoundingClientRect();
@@ -822,7 +859,6 @@
         }});
         window.addEventListener('mouseup', handleInputEnd);
 
-        // Touch
         canvas.addEventListener('touchstart', e => {
             e.preventDefault();
             const r = canvas.getBoundingClientRect();
