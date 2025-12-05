@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Block Blast - Classic Dark</title>
+    <title>Block Blast - Pro Edition</title>
     <style>
-        /* Görseldeki fonta benzer, okunaklı ve yuvarlak hatlı bir font */
         @import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
 
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
-            /* Görseldeki Koyu Lacivert Arka Plan */
             background-color: #2b3648; 
             font-family: 'Varela Round', sans-serif;
             touch-action: none;
@@ -34,18 +32,17 @@
             align-items: center;
         }
 
-        /* --- HEADER (Görseldeki Gibi) --- */
+        /* --- HEADER --- */
         #header {
             width: 90%;
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr; /* Sol, Orta, Sağ */
+            grid-template-columns: 1fr 1fr 1fr;
             align-items: center;
             padding-top: 50px;
             padding-bottom: 20px;
             z-index: 10;
         }
 
-        /* Sol Taraf: Rekor */
         .header-left {
             display: flex;
             align-items: center;
@@ -53,11 +50,7 @@
             justify-content: flex-start;
         }
 
-        .crown-icon {
-            width: 24px;
-            height: 24px;
-            fill: #f2c94c; /* Altın Sarısı */
-        }
+        .crown-icon { width: 24px; height: 24px; fill: #f2c94c; }
 
         #high-score-val {
             color: #f2c94c;
@@ -65,41 +58,25 @@
             font-weight: 700;
         }
 
-        /* Orta Taraf: Skor */
-        .header-center {
-            display: flex;
-            justify-content: center;
-        }
+        .header-center { display: flex; justify-content: center; }
 
         #score {
             color: #ffffff;
-            font-size: 2.5rem; /* Görseldeki gibi büyük */
+            font-size: 2.8rem;
             font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            font-variant-numeric: tabular-nums; /* Sayıların titremesini engeller */
         }
 
-        /* Sağ Taraf: Ayarlar */
-        .header-right {
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .settings-icon {
-            width: 28px;
-            height: 28px;
-            fill: #8da6c9; /* Soluk mavi/gri */
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .settings-icon:hover { transform: rotate(90deg); fill: #fff; }
+        .header-right { display: flex; justify-content: flex-end; }
+        .settings-icon { width: 28px; height: 28px; fill: #8da6c9; cursor: pointer; }
 
         canvas {
             display: block;
-            border-radius: 6px; /* Hafif yuvarlak köşe */
+            border-radius: 6px;
             z-index: 5;
-            /* Grid alanı arka planı */
             background-color: #202a3a; 
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             touch-action: none;
             margin-top: 10px;
         }
@@ -108,7 +85,7 @@
         #game-over {
             position: absolute;
             inset: 0;
-            background: rgba(32, 42, 58, 0.95);
+            background: rgba(32, 42, 58, 0.96);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -121,19 +98,8 @@
 
         #game-over.active { opacity: 1; pointer-events: all; }
 
-        .go-title {
-            font-size: 2.5rem;
-            color: #fff;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        .go-score {
-            font-size: 1.2rem;
-            color: #8da6c9;
-            margin-bottom: 30px;
-        }
-        
+        .go-title { font-size: 2.5rem; color: #fff; margin-bottom: 10px; font-weight: 700; }
+        .go-score { font-size: 1.2rem; color: #8da6c9; margin-bottom: 30px; }
         .go-score span { color: #f2c94c; font-size: 1.8rem; font-weight: 700; }
 
         .btn-restart {
@@ -146,10 +112,9 @@
             font-family: 'Varela Round', sans-serif;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 0 #2980b9; /* 3D Buton hissi */
+            box-shadow: 0 4px 0 #2980b9;
             transition: all 0.1s;
         }
-        
         .btn-restart:active { transform: translateY(4px); box-shadow: none; }
 
     </style>
@@ -164,11 +129,9 @@
                 </svg>
                 <div id="high-score-val">0</div>
             </div>
-
             <div class="header-center">
                 <div id="score">0</div>
             </div>
-
             <div class="header-right">
                 <svg class="settings-icon" viewBox="0 0 24 24">
                     <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
@@ -186,7 +149,7 @@
     </div>
 
     <script>
-        // --- SES SİSTEMİ (Basit ve Tok Sesler) ---
+        // --- SES SİSTEMİ ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx = new AudioContext();
         
@@ -204,15 +167,14 @@
                 osc.start();
                 osc.stop(audioCtx.currentTime + duration);
             },
-            
-            pop: () => Sounds.playTone(200, 'square', 0.1, 0.05), // Tok yerleştirme sesi
+            pop: () => Sounds.playTone(250, 'square', 0.08, 0.06), 
             clear: (combo) => {
-                const base = 400 + (combo * 50);
+                const base = 400 + (combo * 60);
                 Sounds.playTone(base, 'sawtooth', 0.1, 0.08);
-                setTimeout(() => Sounds.playTone(base + 100, 'sawtooth', 0.2, 0.08), 50);
+                setTimeout(() => Sounds.playTone(base + 120, 'sine', 0.2, 0.1), 40);
             },
             gameOver: () => {
-                Sounds.playTone(150, 'sawtooth', 0.5, 0.2);
+                Sounds.playTone(150, 'sawtooth', 0.6, 0.2);
                 setTimeout(() => Sounds.playTone(100, 'sawtooth', 1.0, 0.2), 300);
             }
         };
@@ -227,21 +189,14 @@
         // --- AYARLAR ---
         const GRID_SIZE = 8;
         let CELL_SIZE = 40;
-        const GAP = 2; // Görseldeki gibi çok ince boşluk
+        const GAP = 2; 
         const BOARD_OFFSET_Y = 20;
         
-        // --- RENK PALETİ (Görselden Esinlenilmiş) ---
         const COLORS = {
-            gridEmpty: '#202a3a', // Koyu Grid Arka Planı
+            gridEmpty: '#202a3a', 
             blocks: [
-                '#E74C3C', // Kırmızı
-                '#F39C12', // Turuncu (Görseldeki gibi)
-                '#F1C40F', // Sarı
-                '#2ECC71', // Yeşil
-                '#3498DB', // Mavi
-                '#9B59B6', // Mor
-                '#E67E22', // Koyu Turuncu
-                '#1ABC9C'  // Turkuaz
+                '#E74C3C', '#F39C12', '#F1C40F', '#2ECC71', 
+                '#3498DB', '#9B59B6', '#E67E22', '#1ABC9C'
             ]
         };
 
@@ -256,13 +211,16 @@
         // --- DURUM YÖNETİMİ ---
         let grid = [];
         let debris = [];
+        let floatTexts = []; // Yüzen yazılar için dizi
         let dockPieces = [];
         let draggedPiece = null;
         let score = 0;
-        let highScore = localStorage.getItem('blockBlastClassicHS') || 0;
+        let displayScore = 0; // Ekranda görünen kayan skor
+        let highScore = localStorage.getItem('blockBlastProHS') || 0;
         let isGameOver = false;
         let canvasWidth, canvasHeight;
         let boardX, boardY, boardWidth;
+        let screenShake = 0;
 
         function resize() {
             const container = document.getElementById('game-container');
@@ -291,8 +249,10 @@
 
             grid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(null));
             score = 0;
+            displayScore = 0;
             isGameOver = false;
             debris = [];
+            floatTexts = [];
             
             updateUI();
             gameOverScreen.classList.remove('active');
@@ -330,23 +290,7 @@
             });
         }
 
-        // --- GÖRSEL FONKSİYONLAR (CLASSIC BEVEL STYLE) ---
-        
-        // Rengi açma/koyulaştırma fonksiyonu
-        function shadeColor(color, percent) {
-            let R = parseInt(color.substring(1,3),16);
-            let G = parseInt(color.substring(3,5),16);
-            let B = parseInt(color.substring(5,7),16);
-            R = parseInt(R * (100 + percent) / 100);
-            G = parseInt(G * (100 + percent) / 100);
-            B = parseInt(B * (100 + percent) / 100);
-            R = (R<255)?R:255; G = (G<255)?G:255; B = (B<255)?B:255;
-            let RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
-            let GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
-            let BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
-            return "#"+RR+GG+BB;
-        }
-
+        // --- DRAWING FUNCTIONS ---
         function drawBlock(ctx, x, y, size, color, alpha = 1.0, scale = 1.0) {
             ctx.globalAlpha = alpha;
             const center = size/2;
@@ -356,48 +300,42 @@
             ctx.scale(scale, scale);
             ctx.translate(-center, -center);
 
-            // 1. Ana Renk (Flat)
+            // Base
             ctx.fillStyle = color;
             ctx.fillRect(0, 0, size, size);
 
-            // 2. Bevel Efekti (Görseldeki gibi 3D hissi)
-            const lightColor = "rgba(255,255,255,0.3)";
-            const darkColor = "rgba(0,0,0,0.2)";
-            const bevelSize = size * 0.15; // Kenar kalınlığı
-
-            // Üst ve Sol (Aydınlık)
-            ctx.fillStyle = lightColor;
+            // Bevel Highlight & Shadow (Classic 3D)
+            const bevel = size * 0.15;
+            
+            ctx.fillStyle = "rgba(255,255,255,0.3)";
             ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(size, 0);
-            ctx.lineTo(size - bevelSize, bevelSize);
-            ctx.lineTo(bevelSize, bevelSize);
-            ctx.lineTo(bevelSize, size - bevelSize);
-            ctx.lineTo(0, size);
-            ctx.closePath();
+            ctx.moveTo(0, 0); ctx.lineTo(size, 0); ctx.lineTo(size-bevel, bevel); ctx.lineTo(bevel, bevel); ctx.lineTo(bevel, size-bevel); ctx.lineTo(0, size);
             ctx.fill();
 
-            // Alt ve Sağ (Gölge)
-            ctx.fillStyle = darkColor;
+            ctx.fillStyle = "rgba(0,0,0,0.2)";
             ctx.beginPath();
-            ctx.moveTo(size, size);
-            ctx.lineTo(0, size);
-            ctx.lineTo(bevelSize, size - bevelSize);
-            ctx.lineTo(size - bevelSize, size - bevelSize);
-            ctx.lineTo(size - bevelSize, bevelSize);
-            ctx.lineTo(size, 0);
-            ctx.closePath();
+            ctx.moveTo(size, size); ctx.lineTo(0, size); ctx.lineTo(bevel, size-bevel); ctx.lineTo(size-bevel, size-bevel); ctx.lineTo(size-bevel, bevel); ctx.lineTo(size, 0);
             ctx.fill();
 
-            // 3. İç Kısım (Hafif bir iç kare)
+            // Inner Face
             ctx.fillStyle = color;
-            ctx.fillRect(bevelSize, bevelSize, size - bevelSize*2, size - bevelSize*2);
+            ctx.fillRect(bevel, bevel, size - bevel*2, size - bevel*2);
 
             ctx.restore();
             ctx.globalAlpha = 1.0;
         }
 
-        // --- OYUN MANTIĞI ---
+        function createFloatingText(text, x, y, color) {
+            floatTexts.push({
+                text: text,
+                x: x, y: y,
+                vy: -2, // Yukarı hareket hızı
+                life: 1.0,
+                color: color
+            });
+        }
+
+        // --- GAME LOGIC ---
 
         let isInputDown = false, dragOffsetY = 0;
 
@@ -411,8 +349,8 @@
                 if (Math.abs(x - p.x) < 70 && Math.abs(y - p.y) < 70) {
                     draggedPiece = p;
                     draggedPiece.isDragging = true;
-                    draggedPiece.targetScale = 1.0; // Ele alınca orjinal boyutuna gelir
-                    dragOffsetY = -80; // Parmağın biraz üstünde dursun
+                    draggedPiece.targetScale = 1.0; 
+                    dragOffsetY = -80;
                     draggedPiece.x = x;
                     draggedPiece.y = y + dragOffsetY;
                     if(navigator.vibrate) navigator.vibrate(10);
@@ -471,6 +409,7 @@
         function placePiece(piece, c, r) {
             let blocksPlaced = 0;
             Sounds.pop();
+            screenShake = 2; // Hafif sarsıntı
             
             for (let y = 0; y < piece.shape.length; y++) {
                 for (let x = 0; x < piece.shape[0].length; x++) {
@@ -480,7 +419,14 @@
                     }
                 }
             }
-            addScore(blocksPlaced * 10);
+            
+            const points = blocksPlaced * 10;
+            addScore(points);
+            // Yüzen puan yazısı (Bloğun ortasında çıksın)
+            const cx = boardX + (c + piece.shape[0].length/2) * (CELL_SIZE + GAP);
+            const cy = boardY + (r + piece.shape.length/2) * (CELL_SIZE + GAP);
+            createFloatingText(`+${points}`, cx, cy, '#fff');
+
             checkLines();
         }
 
@@ -499,14 +445,20 @@
 
             if (linesCleared.length > 0) {
                 Sounds.clear(linesCleared.length);
+                screenShake = 5 + (linesCleared.length * 3); // Patlatmada daha çok sarsıntı
 
                 linesCleared.forEach(line => {
+                    let lx, ly;
                     if(line.type === 'row') {
+                        lx = boardX + boardWidth/2;
+                        ly = boardY + line.idx * (CELL_SIZE + GAP) + CELL_SIZE/2;
                         for(let x=0; x<GRID_SIZE; x++) {
                             createDebris(x * (CELL_SIZE + GAP) + boardX + CELL_SIZE/2, line.idx * (CELL_SIZE + GAP) + boardY + CELL_SIZE/2, grid[line.idx][x]);
                             grid[line.idx][x] = null;
                         }
                     } else {
+                        lx = boardX + line.idx * (CELL_SIZE + GAP) + CELL_SIZE/2;
+                        ly = boardY + boardWidth/2;
                         for(let y=0; y<GRID_SIZE; y++) {
                             createDebris(line.idx * (CELL_SIZE + GAP) + boardX + CELL_SIZE/2, y * (CELL_SIZE + GAP) + boardY + CELL_SIZE/2, grid[y][line.idx]);
                             grid[y][line.idx] = null;
@@ -515,9 +467,16 @@
                 });
 
                 let points = linesCleared.length * 100;
-                if (linesCleared.length > 1) points *= 1.5; // Çoklu satır bonusu
+                if (linesCleared.length > 1) {
+                    points *= 1.5; 
+                    createFloatingText("COMBO!", canvasWidth/2, boardY + boardWidth/2, '#f2c94c');
+                }
+                
+                // Patlatma puanını merkeze ekle
                 addScore(Math.floor(points));
-                if(navigator.vibrate) navigator.vibrate(linesCleared.length * 30);
+                createFloatingText(`+${Math.floor(points)}`, canvasWidth/2, boardY + boardWidth/2 - 40, '#f2c94c');
+
+                if(navigator.vibrate) navigator.vibrate(linesCleared.length * 40);
             }
         }
 
@@ -547,23 +506,26 @@
 
         function addScore(amt) {
             score += amt;
-            scoreEl.innerText = score;
             if (score > highScore) {
                 highScore = score;
                 highScoreEl.innerText = highScore;
-                localStorage.setItem('blockBlastClassicHS', highScore);
+                localStorage.setItem('blockBlastProHS', highScore);
             }
         }
-        function updateUI() { scoreEl.innerText = score; highScoreEl.innerText = highScore; }
+        
+        // Rolling number logic handled in loop
+        function updateUI() { 
+            // Manual update not needed for scoreEl, done in gameLoop
+            highScoreEl.innerText = highScore; 
+        }
         function restartGame() { init(); }
 
-        // --- EFEKTLER (Basitleştirilmiş) ---
         function createDebris(x, y, color) {
-            for(let i=0; i<4; i++) {
+            for(let i=0; i<5; i++) {
                 debris.push({
                     x: x, y: y,
-                    vx: (Math.random()-0.5) * 10,
-                    vy: (Math.random()-0.5) * 10,
+                    vx: (Math.random()-0.5) * 12,
+                    vy: (Math.random()-0.5) * 12,
                     size: Math.random() * 8 + 4,
                     color: color,
                     life: 1.0,
@@ -573,15 +535,34 @@
 
         // --- RENDER DÖNGÜSÜ ---
         function gameLoop() {
-            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            // Screen Shake Logic
+            let sx = 0, sy = 0;
+            if (screenShake > 0) {
+                sx = (Math.random() - 0.5) * screenShake;
+                sy = (Math.random() - 0.5) * screenShake;
+                screenShake *= 0.9;
+                if(screenShake < 0.5) screenShake = 0;
+            }
 
-            // GRID (Sabit, koyu zemin)
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            ctx.save();
+            ctx.translate(sx, sy);
+
+            // Rolling Number Logic
+            if (displayScore < score) {
+                let diff = score - displayScore;
+                let step = Math.ceil(diff * 0.15); // Hızlıca yaklaş
+                if (step < 1) step = 1;
+                displayScore += step;
+                scoreEl.innerText = displayScore;
+            }
+
+            // GRID
             for (let y = 0; y < GRID_SIZE; y++) {
                 for (let x = 0; x < GRID_SIZE; x++) {
                     const posX = boardX + x * (CELL_SIZE + GAP);
                     const posY = boardY + y * (CELL_SIZE + GAP);
                     
-                    // Boş hücreleri çiz (Arka plan renginden biraz açık ama çok değil)
                     ctx.fillStyle = COLORS.gridEmpty; 
                     ctx.fillRect(posX, posY, CELL_SIZE, CELL_SIZE);
 
@@ -591,7 +572,7 @@
                 }
             }
 
-            // ÖNİZLEME (Ghost Piece)
+            // GHOST PIECE
             if (draggedPiece) {
                 const gp = getGridPosFromScreen(draggedPiece.x, draggedPiece.y, draggedPiece.shape);
                 if (gp && canPlace(draggedPiece.shape, gp.c, gp.r)) {
@@ -610,11 +591,11 @@
                 }
             }
 
-            // Patlama Efekti
+            // PARTICLES
             for(let i=debris.length-1; i>=0; i--) {
                 const p = debris[i];
                 p.x += p.vx; p.y += p.vy;
-                p.life -= 0.05;
+                p.life -= 0.04;
                 if(p.life <= 0) { debris.splice(i, 1); continue; }
                 
                 ctx.globalAlpha = p.life;
@@ -623,11 +604,11 @@
                 ctx.globalAlpha = 1.0;
             }
 
-            // Aşağıdaki Parçalar
+            // DOCK
             dockPieces.forEach(p => {
                 if (!p) return;
                 p.scale += (p.targetScale - p.scale) * 0.2;
-                const blockSize = draggedPiece === p ? CELL_SIZE : 26; // Dock parçaları biraz daha küçük
+                const blockSize = draggedPiece === p ? CELL_SIZE : 26;
                 const gap = draggedPiece === p ? GAP : 2;
                 const totalW = p.shape[0].length * (blockSize + gap);
                 const totalH = p.shape.length * (blockSize + gap);
@@ -637,16 +618,32 @@
                 for (let r = 0; r < p.shape.length; r++) {
                     for (let c = 0; c < p.shape[0].length; c++) {
                         if (p.shape[r][c] === 1) {
-                            if (draggedPiece === p) {
-                                drawBlock(ctx, startX + c*(blockSize+gap), startY + r*(blockSize+gap), blockSize, p.color, 0.9, 1.0);
-                            } else {
-                                drawBlock(ctx, startX + c*(blockSize+gap), startY + r*(blockSize+gap), blockSize, p.color, 1.0, 1.0);
-                            }
+                            drawBlock(ctx, startX + c*(blockSize+gap), startY + r*(blockSize+gap), blockSize, p.color, draggedPiece===p?0.9:1.0, 1.0);
                         }
                     }
                 }
             });
 
+            // FLOATING TEXTS (Yüzen Puanlar)
+            ctx.textAlign = "center";
+            ctx.font = "bold 24px 'Varela Round', sans-serif";
+            for(let i=floatTexts.length-1; i>=0; i--) {
+                const ft = floatTexts[i];
+                ft.y += ft.vy;
+                ft.life -= 0.02;
+                if(ft.life <= 0) { floatTexts.splice(i, 1); continue; }
+                
+                ctx.globalAlpha = ft.life;
+                ctx.fillStyle = ft.color;
+                // Text outline
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 3;
+                ctx.strokeText(ft.text, ft.x, ft.y);
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.globalAlpha = 1.0;
+            }
+
+            ctx.restore();
             requestAnimationFrame(gameLoop);
         }
 
