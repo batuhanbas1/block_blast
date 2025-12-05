@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Block Blast Ultimate - Enhanced</title>
+    <title>Block Blast - Pastel Edition</title>
     <style>
+        /* Daha yuvarlak ve sevimli bir font seçelim (Fredoka zaten iyiydi, koruyoruz) */
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700;900&display=swap');
 
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: #050505;
+            /* Arka planı aydınlık pastel bir geçiş yapalım */
+            background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
             font-family: 'Fredoka', sans-serif;
             touch-action: none;
             display: flex;
@@ -27,13 +29,15 @@
             width: 100%;
             height: 100%;
             max-width: 500px;
-            background: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+            /* Oyun alanı arka planı daha yumuşak, sütlü bir görünüm */
+            background: rgba(255, 255, 255, 0.4);
             display: flex;
             flex-direction: column;
             align-items: center;
-            box-shadow: 0 0 60px rgba(0,0,0,0.9);
-            border-left: 1px solid rgba(255,255,255,0.05);
-            border-right: 1px solid rgba(255,255,255,0.05);
+            /* Koyu gölge yerine yumuşak bir ışık huzmesi */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05), inset 0 0 20px rgba(255,255,255,0.5);
+            border-radius: 24px; /* Konteyner köşeleri daha yuvarlak */
+            border: 2px solid rgba(255, 255, 255, 0.6);
         }
 
         /* --- UI --- */
@@ -54,19 +58,21 @@
         }
 
         .score-box {
-            background: rgba(255, 255, 255, 0.07);
+            /* Kutular artık açık renkli, süt beyazı */
+            background: rgba(255, 255, 255, 0.7);
             padding: 8px 20px;
-            border-radius: 16px;
+            border-radius: 20px; /* Daha yuvarlak */
             text-align: left;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(12px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             min-width: 100px;
             transition: transform 0.1s;
         }
 
         .score-label {
-            color: #8f9bb3;
+            /* Etiket rengi yumuşak gri/leylak */
+            color: #9ba4b4;
             font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 1.5px;
@@ -74,27 +80,30 @@
         }
 
         .score-val {
-            color: #fff;
+            /* Skor değeri koyu pastel bir renk */
+            color: #5e6c84;
             font-size: 1.6rem;
-            font-weight: 700;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            font-weight: 900;
+            text-shadow: none; /* Neon gölgeyi kaldırdık */
         }
 
-        #high-score-val { color: #ffd700; }
+        #high-score-val { color: #ffb347; /* Pastel turuncu */ }
         #score.pop { animation: scorePop 0.2s ease-out; }
 
         @keyframes scorePop {
             0% { transform: scale(1); }
-            50% { transform: scale(1.3); color: #fff; }
+            50% { transform: scale(1.3); color: #ff8fab; } /* Pembemsi pop efekti */
             100% { transform: scale(1); }
         }
 
         canvas {
             display: block;
-            border-radius: 16px;
+            border-radius: 24px;
             z-index: 5;
-            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.6));
+            /* Canvas gölgesini yumuşattık */
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));
             touch-action: none;
+            margin-top: 10px;
         }
 
         /* --- CONTROLS --- */
@@ -106,30 +115,31 @@
         }
 
         .btn-icon {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            /* Butonlar da açık renkli ve yumuşak */
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid #fff;
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            color: white;
+            color: #7a8ba3; /* İkon rengi pastel mavi/gri */
             font-size: 24px;
             cursor: pointer;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             transition: all 0.2s ease;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        .btn-icon:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.1); }
+        .btn-icon:hover { background: #fff; transform: scale(1.1); color: #ff8fab; }
         .btn-icon:active { transform: scale(0.95); }
 
         /* --- GAME OVER --- */
         #game-over {
             position: absolute;
             inset: 0;
-            background: rgba(5, 5, 8, 0.95);
+            /* Oyun bitiş ekranı aydınlık, buzlu cam gibi */
+            background: rgba(255, 255, 255, 0.85);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -139,33 +149,38 @@
             pointer-events: none;
             transform: scale(0.9);
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
         }
 
         #game-over.active { opacity: 1; pointer-events: all; transform: scale(1); }
 
         .go-title {
             font-size: 3rem;
-            background: linear-gradient(45deg, #ff0055, #ffcc00);
+            /* Başlık rengi pastel gradyan */
+            background: linear-gradient(45deg, #ff8fab, #ffc8dd, #bde0fe);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 5px;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: -1px;
+             /* Yumuşak bir gölge ekleyelim okunsun diye */
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
 
         .go-score {
             font-size: 1.5rem;
-            color: #ccc;
+            color: #9ba4b4;
             margin-bottom: 40px;
             font-weight: 600;
         }
         
-        .go-score span { color: #fff; font-size: 2rem; }
+        .go-score span { color: #5e6c84; font-size: 2rem; font-weight: 800; }
 
         .btn-restart {
-            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            /* Yeniden başlat butonu şeker gibi */
+            background: linear-gradient(90deg, #a2d2ff 0%, #bde0fe 100%);
             border: none;
             padding: 20px 60px;
             font-size: 1.2rem;
@@ -174,7 +189,7 @@
             font-family: 'Fredoka', sans-serif;
             font-weight: 800;
             cursor: pointer;
-            box-shadow: 0 0 20px rgba(0, 242, 254, 0.5);
+            box-shadow: 0 5px 20px rgba(162, 210, 255, 0.5);
             transition: all 0.2s ease;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -182,7 +197,7 @@
             overflow: hidden;
         }
         
-        .btn-restart:hover { box-shadow: 0 0 40px rgba(0, 242, 254, 0.7); transform: translateY(-2px); }
+        .btn-restart:hover { box-shadow: 0 8px 25px rgba(162, 210, 255, 0.7); transform: translateY(-2px); }
         .btn-restart:active { transform: scale(0.95) translateY(0); }
 
     </style>
@@ -198,8 +213,8 @@
                 </div>
             </div>
             <div class="score-group">
-                <div class="score-box" style="border-color: rgba(255, 215, 0, 0.3);">
-                    <div class="score-label" style="color: #ffe066;">Rekor</div>
+                <div class="score-box" style="border-color: rgba(255, 179, 71, 0.4);">
+                    <div class="score-label" style="color: #ffc8dd;">Rekor</div>
                     <div class="score-val" id="high-score-val">0</div>
                 </div>
             </div>
@@ -209,7 +224,7 @@
 
         <div id="controls-area">
             <button class="btn-icon" id="btn-rotate" onclick="rotateDockPieces()" title="Parçaları Döndür">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M2.5 2v6h6M21.5 22v-6h-6"/><path d="M22 11.5A10 10 0 0 0 3.2 7.2M2 12.5a10 10 0 0 0 18.8 4.2"/>
                 </svg>
             </button>
@@ -223,8 +238,7 @@
     </div>
 
     <script>
-        // --- SES SİSTEMİ (AudioContext) ---
-        // Harici dosya olmadan saf JS ile ses üretimi
+        // --- SES SİSTEMİ (Daha yumuşak tonlar için ayarlandı) ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx = new AudioContext();
         
@@ -236,30 +250,31 @@
                 osc.type = type;
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
                 gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                // Sesi daha yumuşak kesmek için exponential yerine linear ramp
+                gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + duration);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start();
                 osc.stop(audioCtx.currentTime + duration);
             },
             
-            pop: () => { // Blok yerleştirme sesi
-                Sounds.playTone(400 + Math.random()*200, 'sine', 0.1, 0.1);
+            pop: () => { // Blok yerleştirme sesi - daha yumuşak 'sine' dalgası
+                Sounds.playTone(300 + Math.random()*100, 'sine', 0.15, 0.08);
             },
             
             rotate: () => { // Döndürme sesi
-                Sounds.playTone(600, 'triangle', 0.1, 0.05);
+                Sounds.playTone(500, 'sine', 0.1, 0.05);
             },
 
-            clear: (combo) => { // Patlama sesi (Kombo arttıkça incelir)
-                const base = 300 + (combo * 100);
-                Sounds.playTone(base, 'sawtooth', 0.15, 0.1); // Ana darbe
-                setTimeout(() => Sounds.playTone(base * 1.5, 'sine', 0.2, 0.1), 50); // Çınlama
+            clear: (combo) => { // Patlama sesi - 'triangle' daha az agresif
+                const base = 300 + (combo * 80);
+                Sounds.playTone(base, 'triangle', 0.2, 0.1);
+                setTimeout(() => Sounds.playTone(base * 1.3, 'sine', 0.25, 0.08), 80);
             },
             
-            gameOver: () => { // Oyun bitiş hüznü
-                Sounds.playTone(150, 'sawtooth', 1.0, 0.2);
-                setTimeout(() => Sounds.playTone(100, 'sawtooth', 1.0, 0.2), 400);
+            gameOver: () => { // Oyun bitiş
+                Sounds.playTone(200, 'triangle', 0.8, 0.1);
+                setTimeout(() => Sounds.playTone(150, 'triangle', 1.0, 0.1), 300);
             }
         };
 
@@ -274,17 +289,26 @@
         // --- AYARLAR ---
         const GRID_SIZE = 8;
         let CELL_SIZE = 40;
-        const GAP = 5; 
+        const GAP = 6; // Boşlukları biraz artırdık, daha ferah görünsün
         const BOARD_OFFSET_Y = 60;
         
-        let baseHue = 230; 
+        // Arka plan için pastel renk döngüsü
+        let bgHue = 0; 
 
+        // --- YENİ PASTEL RENK PALETİ ---
         const COLORS = {
-            gridEmpty: '#14141e',
-            gridBorder: '#1a1c2c',
+            gridEmpty: '#f0f4f8', // Çok açık gri/mavi (süt gibi)
+            gridBorder: '#e1e8ed', // Biraz daha koyusu
+            // Pastel Blok Renkleri (Macaron tonları)
             blocks: [
-                '#FF3B30', '#FF9500', '#FFCC00', '#4CD964', 
-                '#5AC8FA', '#007AFF', '#5856D6', '#FF2D55'
+                '#ffadad', // Pastel Kırmızı (Somon)
+                '#ffd6a5', // Pastel Turuncu (Şeftali)
+                '#fdffb6', // Pastel Sarı (Krem Limon)
+                '#caffbf', // Pastel Yeşil (Nane)
+                '#9bf6ff', // Pastel Açık Mavi (Buz Mavisi)
+                '#a0c4ff', // Pastel Mavi (Gök Mavisi)
+                '#bdb2ff', // Pastel Mor (Leylak)
+                '#ffc6ff'  // Pastel Pembe (Şeker Pembe)
             ]
         };
 
@@ -302,14 +326,13 @@
         let dockPieces = [];
         let draggedPiece = null;
         let score = 0;
-        let highScore = localStorage.getItem('blockBlastUltHighScore') || 0;
+        let highScore = localStorage.getItem('blockBlastPastelHighScore') || 0;
         let isGameOver = false;
         let comboCount = 0;
         let lastClearTime = 0;
         let canvasWidth, canvasHeight;
         let boardX, boardY, boardWidth;
         let screenShake = 0;
-        let targetHue = 230;
         let isNewHighScore = false;
 
         function resize() {
@@ -335,7 +358,6 @@
         }
 
         function init() {
-            // Audio context başlatma (kullanıcı etkileşimi gerekebilir)
             if(audioCtx.state === 'suspended') audioCtx.resume();
 
             grid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(null));
@@ -359,7 +381,7 @@
                 const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
                 const color = COLORS.blocks[Math.floor(Math.random() * COLORS.blocks.length)];
                 dockPieces.push({
-                    shape: JSON.parse(JSON.stringify(shape)), // Deep copy
+                    shape: JSON.parse(JSON.stringify(shape)),
                     color: color,
                     x: 0, y: 0, width: 0, height: 0,
                     scale: 0.6, isDragging: false, targetScale: 0.6,
@@ -381,9 +403,7 @@
             });
         }
 
-        // --- YENİ: DÖNDÜRME MANTIĞI ---
         function rotateMatrix(matrix) {
-            // 90 derece saat yönünde döndür
             const N = matrix.length;
             const M = matrix[0].length;
             let result = Array(M).fill().map(() => Array(N).fill(0));
@@ -397,64 +417,79 @@
 
         function rotateDockPieces() {
             if(isGameOver) return;
-            
             let rotatedAny = false;
             dockPieces.forEach(p => {
                 if(p && !p.isDragging) {
                     p.shape = rotateMatrix(p.shape);
-                    // Animasyon efekti
                     p.scale = 0.1; 
                     p.targetScale = 0.6;
-                    createParticles(p.x, p.y, '#fff', 2, 2);
+                    // Dönme efekti için beyaz yerine pastel sarı partikül
+                    createParticles(p.x, p.y, '#fdffb6', 3, 2);
                     rotatedAny = true;
                 }
             });
-
             if(rotatedAny) {
                 Sounds.rotate();
-                checkGameOver(); // Döndürdükten sonra oyun bitiyor mu kontrol et
+                checkGameOver();
             }
         }
 
-        // Klavye R tuşu
         window.addEventListener('keydown', (e) => {
             if((e.key === 'r' || e.key === 'R') && !isGameOver) {
                 rotateDockPieces();
             }
         });
 
+        // --- GÖRSEL FONKSİYONLAR (YENİLENMİŞ PASTEL BLOK ÇİZİMİ) ---
+        
+        // Yardımcı fonksiyon: Rengi açmak/koyulaştırmak için
+        function adjustColor(color, amount) {
+            return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
+        }
 
-        // --- GÖRSEL FONKSİYONLAR ---
+        // Yeni "Şirin" Blok Çizimi
         function drawBlock(ctx, x, y, size, color, alpha = 1.0, scale = 1.0) {
             ctx.globalAlpha = alpha;
             const center = size/2;
-            const r = 8 * scale;
+            // Daha büyük yarıçap = daha yuvarlak, yumuşak bloklar
+            const r = 12 * scale; 
             
             ctx.save();
             ctx.translate(x + center, y + center);
             ctx.scale(scale, scale);
             ctx.translate(-center, -center);
 
+            // 1. Ana Renk (Mat, düz pastel dolgu)
             ctx.fillStyle = color;
-            drawRoundedRect(ctx, 0, 0, size, size, r);
-
-            const grad = ctx.createLinearGradient(0, 0, 0, size);
-            grad.addColorStop(0, "rgba(255,255,255,0.4)");
-            grad.addColorStop(0.4, "rgba(255,255,255,0)");
-            ctx.fillStyle = grad;
-            drawRoundedRect(ctx, 0, 0, size, size, r);
-
-            ctx.fillStyle = "rgba(0,0,0,0.2)";
+            // Çizgiyi (stroke) kaldırdık, daha yumuşak görünsün
             ctx.beginPath();
-            ctx.moveTo(0, size);
-            ctx.lineTo(size, size);
-            ctx.lineTo(size, size - 10);
-            ctx.lineTo(0, size - 2);
+            if(ctx.roundRect) ctx.roundRect(0, 0, size, size, r);
+            else ctx.rect(0, 0, size, size);
             ctx.fill();
 
-            ctx.strokeStyle = "rgba(255,255,255,0.2)";
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            // 2. Alt Kısım Gölgesi (Sert siyah yerine, rengin koyu tonu)
+            const darkerColor = adjustColor(color, -40); // Rengin 40 birim koyusu
+            ctx.fillStyle = darkerColor;
+            ctx.beginPath();
+            // Alt tarafa hafif bir kalınlık hissi veren yumuşak gölge
+            ctx.moveTo(r, size); 
+            ctx.lineTo(size - r, size);
+            ctx.quadraticCurveTo(size, size, size, size - r);
+            ctx.lineTo(size, size - 4);
+            ctx.quadraticCurveTo(size, size - 4, size - r, size - 4);
+            ctx.lineTo(r, size - 4);
+            ctx.quadraticCurveTo(0, size - 4, 0, size - r - 4);
+            ctx.lineTo(0, size - r);
+            ctx.quadraticCurveTo(0, size, r, size);
+            ctx.fill();
+
+            // 3. Üst Kısım Parlaması (Keskin beyaz yerine, yumuşak açık ton)
+            const lighterColor = adjustColor(color, 30); // Rengin 30 birim açığı
+            ctx.fillStyle = lighterColor;
+             ctx.beginPath();
+             // Üst tarafa hafif bir "tomruluk" hissi veren oval parlama
+            ctx.ellipse(size/2, size/4, size/2.5, size/6, 0, 0, Math.PI*2);
+            ctx.fill();
 
             ctx.restore();
             ctx.globalAlpha = 1.0;
@@ -465,10 +500,11 @@
             if(ctx.roundRect) ctx.roundRect(x, y, w, h, r);
             else ctx.rect(x, y, w, h);
             ctx.fill();
-            ctx.stroke();
+            // Kenar çizgilerini kaldırdık, daha temiz bir görüntü için
+            // ctx.stroke(); 
         }
 
-        // --- OYUN MANTIĞI ---
+        // --- OYUN MANTIĞI (Değişiklik yok, sadece ses çağrıları güncellendi) ---
 
         let isInputDown = false, dragOffsetY = 0;
 
@@ -487,7 +523,7 @@
                     draggedPiece.x = x;
                     draggedPiece.y = y + dragOffsetY;
                     if(navigator.vibrate) navigator.vibrate(10);
-                    Sounds.pop(); // Ses ekle
+                    Sounds.pop();
                     break;
                 }
             }
@@ -512,7 +548,8 @@
                     draggedPiece.targetScale = 0.6;
                     draggedPiece.x = draggedPiece.baseX;
                     draggedPiece.y = draggedPiece.baseY;
-                    Sounds.playTone(100, 'sine', 0.1, 0.05); // Başarısız bırakma sesi
+                    // Bırakma sesi daha yumuşak
+                    Sounds.playTone(150, 'sine', 0.1, 0.05); 
                 }
                 draggedPiece = null;
             }
@@ -542,8 +579,8 @@
 
         function placePiece(piece, c, r) {
             let blocksPlaced = 0;
-            screenShake = 4;
-            Sounds.pop(); // Yerleştirme sesi
+            screenShake = 3; // Titreşimi azalttık, daha nazik olsun
+            Sounds.pop();
             
             for (let y = 0; y < piece.shape.length; y++) {
                 for (let x = 0; x < piece.shape[0].length; x++) {
@@ -580,16 +617,19 @@
                 comboCount = (now - lastClearTime < 5000) ? comboCount + 1 : 1;
                 lastClearTime = now;
                 
-                // SES EFEKTİ
                 Sounds.clear(comboCount);
 
-                screenShake = 10 + (linesCleared.length * 3);
-                shockwaves.push({ x: canvasWidth/2, y: boardY + boardWidth/2, r: 0, alpha: 1, color: '#fff', lw: 15 });
-                targetHue = (targetHue + 40) % 360;
+                screenShake = 8 + (linesCleared.length * 2); // Titreşim azaldı
+                // Şok dalgası rengi beyaz yerine çok açık sarı
+                shockwaves.push({ x: canvasWidth/2, y: boardY + boardWidth/2, r: 0, alpha: 0.6, color: '#ffffd1', lw: 20 });
+                
+                // Arka plan rengini pastel döngüde değiştir
+                bgHue = (bgHue + 40) % 360;
 
                 linesCleared.forEach(line => {
                     if(line.type === 'row') {
-                        flashes.push({ x: boardX, y: boardY + line.idx * (CELL_SIZE + GAP), w: boardWidth, h: CELL_SIZE, life: 1.0 });
+                        // Flash rengi yumuşak beyaz
+                        flashes.push({ x: boardX, y: boardY + line.idx * (CELL_SIZE + GAP), w: boardWidth, h: CELL_SIZE, life: 0.8 });
                         for(let x=0; x<GRID_SIZE; x++) {
                             const cx = x * (CELL_SIZE + GAP) + boardX + CELL_SIZE/2;
                             const cy = line.idx * (CELL_SIZE + GAP) + boardY + CELL_SIZE/2;
@@ -597,7 +637,7 @@
                             grid[line.idx][x] = null;
                         }
                     } else {
-                        flashes.push({ x: boardX + line.idx * (CELL_SIZE + GAP), y: boardY, w: CELL_SIZE, h: boardWidth, life: 1.0 });
+                        flashes.push({ x: boardX + line.idx * (CELL_SIZE + GAP), y: boardY, w: CELL_SIZE, h: boardWidth, life: 0.8 });
                         for(let y=0; y<GRID_SIZE; y++) {
                             const cx = line.idx * (CELL_SIZE + GAP) + boardX + CELL_SIZE/2;
                             const cy = y * (CELL_SIZE + GAP) + boardY + CELL_SIZE/2;
@@ -611,13 +651,15 @@
                 if (linesCleared.length > 1) points *= 1.5;
                 if (comboCount > 1) {
                     points += (comboCount * 50);
-                    createPopup(`COMBO x${comboCount}`, canvasWidth/2, boardY + boardWidth/2, '#ffd700', 1.5 + (comboCount*0.1));
+                    // Combo yazısı rengi pastel sarı
+                    createPopup(`COMBO x${comboCount}`, canvasWidth/2, boardY + boardWidth/2, '#fdffb6', 1.5 + (comboCount*0.1));
                 } else if (linesCleared.length > 1) {
-                    createPopup("HARİKA!", canvasWidth/2, boardY + boardWidth/2, '#00e5ff', 1.2);
+                    // Harika yazısı rengi pastel mavi
+                    createPopup("HARİKA!", canvasWidth/2, boardY + boardWidth/2, '#a0c4ff', 1.2);
                 }
 
                 addScore(Math.floor(points));
-                if(navigator.vibrate) navigator.vibrate(linesCleared.length * 50);
+                if(navigator.vibrate) navigator.vibrate(linesCleared.length * 40);
             } else {
                 comboCount = 0;
             }
@@ -640,7 +682,7 @@
             if (!canMove) {
                 setTimeout(() => {
                     isGameOver = true;
-                    Sounds.gameOver(); // Bitiş sesi
+                    Sounds.gameOver();
                     gameOverScreen.classList.add('active');
                     finalScoreEl.innerText = score;
                 }, 800);
@@ -657,29 +699,30 @@
             if (score > highScore) {
                 highScore = score;
                 highScoreEl.innerText = highScore;
-                localStorage.setItem('blockBlastUltHighScore', highScore);
+                localStorage.setItem('blockBlastPastelHighScore', highScore);
                 if (!isNewHighScore) {
                     isNewHighScore = true;
                     createConfetti();
-                    createPopup("YENİ REKOR!", canvasWidth/2, 100, '#ffd700', 2.0);
+                    // Rekor yazısı pastel pembe
+                    createPopup("YENİ REKOR!", canvasWidth/2, 100, '#ffc6ff', 2.0);
                 }
             }
         }
         function updateUI() { scoreEl.innerText = score; highScoreEl.innerText = highScore; }
         function restartGame() { init(); }
 
-        // --- PARTİKÜL SİSTEMİ ---
+        // --- PARTİKÜL SİSTEMİ (Pastel renkler) ---
         function createDebris(x, y, color) {
             for(let i=0; i<4; i++) {
                 debris.push({
                     x: x + (Math.random()-0.5)*20,
                     y: y + (Math.random()-0.5)*20,
-                    vx: (Math.random()-0.5) * 10,
-                    vy: (Math.random() * -10) - 5,
-                    size: Math.random() * 8 + 4,
+                    vx: (Math.random()-0.5) * 8, // Hızları azalttık, daha yavaş süzülsünler
+                    vy: (Math.random() * -8) - 4,
+                    size: Math.random() * 8 + 6, // Parçalar biraz daha büyük ve tombul
                     color: color,
                     life: 1.0,
-                    gravity: 0.8
+                    gravity: 0.6 // Yerçekimi azaldı
                 });
             }
         }
@@ -688,39 +731,43 @@
             for (let i = 0; i < amount; i++) {
                 particles.push({
                     x: x, y: y,
-                    vx: (Math.random()-0.5)*speedBase*2,
-                    vy: (Math.random()-0.5)*speedBase*2,
+                    vx: (Math.random()-0.5)*speedBase*1.5,
+                    vy: (Math.random()-0.5)*speedBase*1.5,
                     life: 1.0,
                     color: color,
-                    size: Math.random() * 4 + 2
+                    size: Math.random() * 5 + 3
                 });
             }
         }
 
         function createConfetti() {
-            for(let i=0; i<50; i++) {
+            for(let i=0; i<60; i++) {
+                // Konfetiler için pastel HSL renkleri
+                const pastelHue = Math.random() * 360;
                 confettis.push({
                     x: canvasWidth/2, y: canvasHeight/2,
-                    vx: (Math.random()-0.5)*20,
-                    vy: (Math.random()-0.5)*20 - 10,
-                    color: `hsl(${Math.random()*360}, 100%, 50%)`,
-                    life: 2.0, size: 8
+                    vx: (Math.random()-0.5)*25,
+                    vy: (Math.random()-0.5)*25 - 12,
+                    color: `hsl(${pastelHue}, 70%, 80%)`, // Yüksek parlaklık, düşük doygunluk
+                    life: 2.5, size: 10
                 });
             }
         }
 
         function createPopup(text, x, y, color, scale=1.0) {
-            popups.push({ text, x, y, life: 1.0, color, scale, dy: -2 });
+            popups.push({ text, x, y, life: 1.0, color, scale, dy: -1.5 });
         }
 
         // --- RENDER DÖNGÜSÜ ---
         function gameLoop() {
-            baseHue += (targetHue - baseHue) * 0.05;
-            const bgGradient = ctx.createRadialGradient(canvasWidth/2, canvasHeight/2, 0, canvasWidth/2, canvasHeight/2, canvasHeight);
-            bgGradient.addColorStop(0, `hsla(${baseHue}, 40%, 15%, 1)`);
-            bgGradient.addColorStop(1, '#000000');
+            // Dinamik ama çok yumuşak arka plan geçişi (Pastel gökyüzü gibi)
+            bgHue += 0.2;
+            const bgGradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
+            bgGradient.addColorStop(0, `hsl(${bgHue}, 60%, 95%)`); // Çok açık pastel üst
+            bgGradient.addColorStop(1, `hsl(${(bgHue+60)%360}, 60%, 90%)`); // Biraz daha koyu pastel alt
             ctx.fillStyle = bgGradient;
-            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+            // ctx.fillRect(0, 0, canvasWidth, canvasHeight); // Canvas arka planını kapattık, CSS body hallediyor.
+            ctx.clearRect(0,0, canvasWidth, canvasHeight); // Tuvali temizle
 
             let sx = 0, sy = 0;
             if (screenShake > 0) {
@@ -732,33 +779,34 @@
             ctx.save();
             ctx.translate(sx, sy);
 
-            // GRID
+            // GRID Çizimi (Daha yuvarlak köşeler)
             for (let y = 0; y < GRID_SIZE; y++) {
                 for (let x = 0; x < GRID_SIZE; x++) {
                     const posX = boardX + x * (CELL_SIZE + GAP);
                     const posY = boardY + y * (CELL_SIZE + GAP);
                     ctx.fillStyle = COLORS.gridEmpty;
-                    drawRoundedRect(ctx, posX, posY, CELL_SIZE, CELL_SIZE, 8);
+                    // Grid yuvaları daha yuvarlak (12px radius)
+                    drawRoundedRect(ctx, posX, posY, CELL_SIZE, CELL_SIZE, 12);
                     if (grid[y][x]) {
                         drawBlock(ctx, posX, posY, CELL_SIZE, grid[y][x]);
                     }
                 }
             }
 
-            // ÖNİZLEME
+            // ÖNİZLEME (Daha yumuşak gölge)
             if (draggedPiece) {
                 const gp = getGridPosFromScreen(draggedPiece.x, draggedPiece.y, draggedPiece.shape);
                 if (gp && canPlace(draggedPiece.shape, gp.c, gp.r)) {
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = draggedPiece.color;
-                    ctx.globalAlpha = 0.4;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = draggedPiece.color; // Kendi renginde yumuşak gölge
+                    ctx.globalAlpha = 0.5; // Daha şeffaf
                     for (let y = 0; y < draggedPiece.shape.length; y++) {
                         for (let x = 0; x < draggedPiece.shape[0].length; x++) {
                             if (draggedPiece.shape[y][x] === 1) {
                                 const px = boardX + (gp.c + x) * (CELL_SIZE + GAP);
                                 const py = boardY + (gp.r + y) * (CELL_SIZE + GAP);
                                 ctx.fillStyle = draggedPiece.color;
-                                drawRoundedRect(ctx, px, py, CELL_SIZE, CELL_SIZE, 8);
+                                drawRoundedRect(ctx, px, py, CELL_SIZE, CELL_SIZE, 12);
                             }
                         }
                     }
@@ -767,58 +815,66 @@
                 }
             }
 
-            // EFEKTLER
+            // EFEKTLER (Flash daha yumuşak)
             flashes.forEach((f, i) => {
-                ctx.fillStyle = `rgba(255,255,255,${f.life})`;
-                ctx.globalCompositeOperation = 'overlay';
-                drawRoundedRect(ctx, f.x, f.y, f.w, f.h, 8);
-                ctx.globalCompositeOperation = 'source-over';
-                f.life -= 0.15;
+                ctx.fillStyle = `rgba(255,255,255,${f.life * 0.6})`; // Daha az opak
+                // 'overlay' yerine normal çizim, gözü yormasın
+                drawRoundedRect(ctx, f.x, f.y, f.w, f.h, 12);
+                f.life -= 0.1;
                 if (f.life <= 0) flashes.splice(i, 1);
             });
 
+            // Debris (Parçacıklar) - Dönme efekti kaldırıldı, daha "puf" gibi süzülsünler
             for(let i=debris.length-1; i>=0; i--) {
                 const p = debris[i];
                 p.x += p.vx; p.y += p.vy; p.vy += p.gravity;
-                if (p.y > canvasHeight - 10) { p.y = canvasHeight - 10; p.vy *= -0.6; }
-                p.life -= 0.015;
+                if (p.y > canvasHeight - 10) { p.y = canvasHeight - 10; p.vy *= -0.5; }
+                p.life -= 0.02;
                 if(p.life <= 0) { debris.splice(i, 1); continue; }
-                ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.life * 5);
-                ctx.fillStyle = p.color; ctx.globalAlpha = p.life;
-                ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size); ctx.restore();
+                
+                // Düz renk yerine hafif şeffaf daireler
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size/2, 0, Math.PI*2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
             }
 
+            // Şok Dalgaları (Daha kalın ve yumuşak)
             for(let i=shockwaves.length-1; i>=0; i--) {
                 const sw = shockwaves[i];
-                sw.r += 10; sw.alpha -= 0.04;
+                sw.r += 8; sw.alpha -= 0.03;
                 if(sw.alpha <= 0) { shockwaves.splice(i, 1); continue; }
                 ctx.beginPath(); ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI*2);
-                ctx.strokeStyle = `rgba(255,255,255,${sw.alpha})`;
-                ctx.lineWidth = sw.lw * sw.alpha; ctx.stroke();
+                ctx.strokeStyle = sw.color;
+                ctx.globalAlpha = sw.alpha;
+                ctx.lineWidth = sw.lw; ctx.stroke();
+                ctx.globalAlpha = 1.0;
             }
 
+            // Dock Parçaları
             dockPieces.forEach(p => {
                 if (!p) return;
                 p.scale += (p.targetScale - p.scale) * 0.2;
                 const blockSize = draggedPiece === p ? CELL_SIZE : 24;
-                const gap = draggedPiece === p ? GAP : 2;
+                const gap = draggedPiece === p ? GAP : 3;
                 const totalW = p.shape[0].length * (blockSize + gap);
                 const totalH = p.shape.length * (blockSize + gap);
                 const startX = p.x - (totalW / 2);
                 const startY = p.y - (totalH / 2);
 
-                if (draggedPiece === p) { ctx.shadowColor = p.color; ctx.shadowBlur = 30; }
+                // Sürüklenirken hafif bir parlama
+                if (draggedPiece === p) { ctx.shadowColor = p.color; ctx.shadowBlur = 15; }
 
                 for (let r = 0; r < p.shape.length; r++) {
                     for (let c = 0; c < p.shape[0].length; c++) {
                         if (p.shape[r][c] === 1) {
                             if (draggedPiece === p) {
-                                drawBlock(ctx, startX + c*(blockSize+gap), startY + r*(blockSize+gap), blockSize, p.color, 0.9, 1.0);
+                                drawBlock(ctx, startX + c*(blockSize+gap), startY + r*(blockSize+gap), blockSize, p.color, 0.95, 1.0);
                             } else {
-                                ctx.fillStyle = p.color;
-                                drawRoundedRect(ctx, startX + c*(blockSize+gap), startY + r*(blockSize+gap), blockSize, blockSize, 6);
-                                ctx.fillStyle = "rgba(255,255,255,0.2)";
-                                ctx.beginPath(); ctx.arc(startX + c*(blockSize+gap)+8, startY + r*(blockSize+gap)+8, 4, 0, Math.PI*2); ctx.fill();
+                                // Dock'taki küçük parçalar da yeni stilde
+                                drawBlock(ctx, startX + c*(blockSize+gap), startY + r*(blockSize+gap), blockSize, p.color, 1.0, 1.0);
                             }
                         }
                     }
@@ -826,30 +882,41 @@
                 ctx.shadowBlur = 0;
             });
 
+            // Popup Yazılar (Neon efekt kaldırıldı, yumuşak gölge eklendi)
             ctx.textAlign = "center";
             for(let i=popups.length-1; i>=0; i--) {
                 const p = popups[i];
-                p.life -= 0.015; p.y += p.dy; p.scale += 0.01;
+                p.life -= 0.015; p.y += p.dy; p.scale += 0.005;
                 if(p.life <= 0) { popups.splice(i, 1); continue; }
                 ctx.save(); ctx.translate(p.x, p.y); ctx.scale(p.scale, p.scale);
                 ctx.fillStyle = p.color; ctx.font = "900 40px 'Fredoka', sans-serif";
-                ctx.shadowColor = p.color; ctx.shadowBlur = 20; ctx.fillText(p.text, 0, 0);
-                ctx.shadowBlur = 0; ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.strokeText(p.text, 0, 0);
+                // Yumuşak, bulanık gölge
+                ctx.shadowColor = "rgba(0,0,0,0.1)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 4;
+                ctx.fillText(p.text, 0, 0);
+                // Beyaz kenar çizgisi yerine daha kalın, aynı rengin açığı
+                ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+                ctx.strokeStyle = adjustColor(p.color, 40); ctx.lineWidth = 3; ctx.strokeText(p.text, 0, 0);
                 ctx.restore();
             }
 
+            // Konfeti (Kare yerine yuvarlak)
             for(let i=confettis.length-1; i>=0; i--) {
                 const c = confettis[i];
-                c.x += c.vx; c.y += c.vy; c.vy += 0.5; c.vx *= 0.98; c.life -= 0.01;
+                c.x += c.vx; c.y += c.vy; c.vy += 0.4; c.vx *= 0.99; c.life -= 0.015;
                 if(c.life <= 0) { confettis.splice(i, 1); continue; }
-                ctx.fillStyle = c.color; ctx.fillRect(c.x, c.y, c.size, c.size);
+                ctx.globalAlpha = c.life;
+                ctx.fillStyle = c.color;
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, c.size/2, 0, Math.PI*2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
             }
 
             ctx.restore();
             requestAnimationFrame(gameLoop);
         }
 
-        // --- EVENTS ---
+        // --- EVENTS (Aynı) ---
         window.addEventListener('resize', resize);
         
         canvas.addEventListener('mousedown', e => handleInputStart(e.offsetX, e.offsetY));
